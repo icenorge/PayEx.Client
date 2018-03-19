@@ -1,4 +1,4 @@
-FROM microsoft/windowsservercore:latest
+FROM microsoft/windowsservercore
 
 WORKDIR /build  
 COPY ./ .
