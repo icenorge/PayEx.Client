@@ -4,4 +4,4 @@ services:
   - docker
 
 script:
-  -  docker build .
+  -  docker build -f Linux.Dockerfile .
