@@ -17,4 +17,5 @@ RUN apt-get update \
 
 WORKDIR /build
 COPY ./ .
+RUN chmod +x ./build.sh
 RUN ./build.sh 
