@@ -13,10 +13,7 @@
     <RepositoryUrl>https://github.com/icenorge/payex.client</RepositoryUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/icenorge/payex.client/master/images/payex.250x250.png</PackageIconUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>
-     * Adds Vipps payments
-     * Adds CreditCard payments
-    </PackageReleaseNotes>    
+    <PackageReleaseNotes>Vipps payment handling. CreditCard payment handling.</PackageReleaseNotes>    
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
