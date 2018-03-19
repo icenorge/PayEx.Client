@@ -2,7 +2,8 @@ var target = Argument("target", "Pack");
 var configuration = Argument("configuration", "Release");
 var proj = $"./src/PayEx.Client.csproj";
 
-var version = "0.1.0"; 
+var version = "0.1.0-preview001"; 
+var outputDir = "./output";
 
 Task("Build")    
     .Does(() => {
@@ -23,7 +24,7 @@ Task("Pack")
         var coresettings = new DotNetCorePackSettings
         {
             Configuration = "Release",
-            OutputDirectory = "./output",
+            OutputDirectory = outputDir,
         };
         coresettings.MSBuildSettings = new DotNetCoreMSBuildSettings()
                                         .WithProperty("Version", new[] { version });
@@ -32,9 +33,16 @@ Task("Pack")
         DotNetCorePack(proj, coresettings);
 });
 
-Task("Default")
-.Does(() => {
-   Information("Hello Cake!");
+Task("PublishToNugetOrg")
+    .IsDependentOn("Pack")
+    .Does(() => {        
+        var settings = new DotNetCoreNuGetPushSettings
+        {
+            Source = "https://api.nuget.org/v3/index.json",
+            ApiKey = EnvironmentVariable("NUGET_API_KEY")
+        };
+
+        DotNetCoreNuGetPush($"{outputDir}/PayEx.Client.{version}.nupkg", settings);        
 });
 
 RunTarget(target);

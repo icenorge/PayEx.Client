@@ -1,7 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+   <PackageId>PayEx.Client</PackageId>    
+    <Authors>John Korsnes</Authors>
+    <Description>
+        A client library for PayEx REST APIs
+    </Description>
+    <Copyright>John Korsnes, ice</Copyright>
+    <PackageTags>payex client</PackageTags>    
+    <PackageProjectUrl>https://github.com/icenorge/payex.client</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/icenorge/payex.client/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/icenorge/payex.client</RepositoryUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/icenorge/payex.client/master/images/payex.250x250.png</PackageIconUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>
+     * Adds Vipps payments
+     * Adds CreditCard payments
+    </PackageReleaseNotes>    
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
