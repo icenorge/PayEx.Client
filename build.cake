@@ -2,7 +2,7 @@ var target = Argument("target", "Pack");
 var configuration = Argument("configuration", "Release");
 var proj = $"./src/PayEx.Client/PayEx.Client.csproj";
 
-var version = "1.0.0-preview001"; 
+var version = "1.0.0"; 
 var outputDir = "./output";
 
 Task("Build")    
@@ -39,7 +39,7 @@ Task("PublishToNugetOrg")
         var settings = new DotNetCoreNuGetPushSettings
         {
             Source = "https://api.nuget.org/v3/index.json",
-            ApiKey = EnvironmentVariable("NUGET_API_KEY")
+            ApiKey = Argument("nugetapikey", "must-be-given")
         };
 
         DotNetCoreNuGetPush($"{outputDir}/PayEx.Client.{version}.nupkg", settings);        

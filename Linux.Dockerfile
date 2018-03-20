@@ -20,4 +20,5 @@ ENV DOTNET_SKIP_FIRST_TIME_EXPERIENCE 1
 
 WORKDIR /build
 COPY ./ .
-RUN ./build.sh 
+ARG cakeargs=""
+RUN ./build.sh $cakeargs

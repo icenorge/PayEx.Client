@@ -1,0 +1,1 @@
+docker build -f Linux.Dockerfile --build-arg cakeargs="-target=publishtonugetorg --nugetapikey=INSERTAPIKEYHERE" .
