@@ -4,9 +4,11 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PayEx.Client", "PayEx.Client\PayEx.Client.csproj", "{333B8C3B-1886-48F3-982C-DD9AACB5D41C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{9DCC3076-4DF6-455D-AF82-64B1047FE9ED}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{9DCC3076-4DF6-455D-AF82-64B1047FE9ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console.Sample", "Console.Sample\Console.Sample.csproj", "{199C0B82-3AE0-447E-BE30-A898C63B7270}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.ConsoleApp", "Samples\Sample.ConsoleApp\Sample.ConsoleApp.csproj", "{199C0B82-3AE0-447E-BE30-A898C63B7270}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.AspNetCore", "Samples\Sample.AspNetCore\Sample.AspNetCore.csproj", "{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,12 +44,25 @@ Global
 		{199C0B82-3AE0-447E-BE30-A898C63B7270}.Release|x64.Build.0 = Release|Any CPU
 		{199C0B82-3AE0-447E-BE30-A898C63B7270}.Release|x86.ActiveCfg = Release|Any CPU
 		{199C0B82-3AE0-447E-BE30-A898C63B7270}.Release|x86.Build.0 = Release|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Debug|x64.Build.0 = Debug|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Debug|x86.Build.0 = Debug|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Release|x64.ActiveCfg = Release|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Release|x64.Build.0 = Release|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Release|x86.ActiveCfg = Release|Any CPU
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{199C0B82-3AE0-447E-BE30-A898C63B7270} = {9DCC3076-4DF6-455D-AF82-64B1047FE9ED}
+		{2BE8B40D-E1E3-4964-9788-DAD78C3F9498} = {9DCC3076-4DF6-455D-AF82-64B1047FE9ED}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AB42E44D-D98F-44E8-BC0C-7CB86C832385}
