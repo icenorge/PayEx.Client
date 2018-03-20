@@ -11,8 +11,9 @@
 
 Download it from NuGet:[![NuGet](https://img.shields.io/nuget/dt/payex.client.svg)](https://www.nuget.org/packages/payex.client/)
 
-
-
 ## Supported APIs:
 - Vipps (create payment, Vipps authorize, capture, cancel, reversal)
 - CreditCard link (create payment, capture, cancel, reversal)
+
+# Sample apps
+Check the [the samples folder].(https://github.com/icenorge/PayEx.Client/tree/master/src/Samples)
