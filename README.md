@@ -16,4 +16,4 @@ Download it from NuGet:[![NuGet](https://img.shields.io/nuget/dt/payex.client.sv
 - CreditCard link (create payment, capture, cancel, reversal)
 
 # Sample apps
-Check the [the samples folder].(https://github.com/icenorge/PayEx.Client/tree/master/src/Samples)
+Check the [the samples folder](https://github.com/icenorge/PayEx.Client/tree/master/src/Samples)
