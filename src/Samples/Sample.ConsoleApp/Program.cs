@@ -26,6 +26,7 @@ namespace Sample.ConsoleApp
 
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {payExOptions.Token}");
+            httpClient.BaseAddress = payExOptions.ApiBaseUrl;
 
             var payExClient = new PayExClient(httpClient, options);
             var prices = new Price
