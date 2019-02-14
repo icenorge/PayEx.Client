@@ -7,25 +7,27 @@ namespace Sample.AspNetCore
 {
     public class PayExClientConfigurator : IConfigureNamedOptions<HttpClientFactoryOptions>
     {
-        private readonly PayExOptions _payexoptions;
+        private readonly IOptionsSnapshot<PayExOptions> _payexoptionsSnapshot;
 
-        public PayExClientConfigurator(IOptions<PayExOptions> payexoptions)
+        public PayExClientConfigurator(IOptionsSnapshot<PayExOptions> payexoptions)
         {
-            _payexoptions = payexoptions.Value;
+            _payexoptionsSnapshot = payexoptions;
         }
 
         public void Configure(HttpClientFactoryOptions options)
         {
-
         }
 
         public void Configure(string name, HttpClientFactoryOptions options)
         {
+            var payexoptions = _payexoptionsSnapshot.Get(name);
+            
             options.HttpClientActions.Add(client =>
             {
-                client.BaseAddress = _payexoptions.ApiBaseUrl;
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_payexoptions.Token}");
-            });
+                client.BaseAddress = payexoptions.ApiBaseUrl;
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {payexoptions.Token}");
+                
+            }); 
         }
     }
 }

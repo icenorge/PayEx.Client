@@ -21,9 +21,11 @@ namespace Sample.AspNetCore
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<PayExOptions>(Configuration.GetSection("PayEx"));
             services.AddTransient<IConfigureOptions<HttpClientFactoryOptions>, PayExClientConfigurator>();
-            services.AddHttpClient<PayExClient>("PayExClient");
+            services.AddScoped<ISelectClient, QueryStringSelector>();
+            services.AddTransient<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddPayExHttpClient(Configuration, Constants.Someaccount);
+            services.AddPayExHttpClient(Configuration, Constants.OtherAccount);
             services.AddMvc();
         }
         
@@ -31,6 +33,34 @@ namespace Sample.AspNetCore
         {
             app.UseDeveloperExceptionPage();
             app.UseMvc();
+        }
+    }
+
+        public class QueryStringSelector : ISelectClient
+    {
+        private readonly IHttpContextAccessor _contextAccessor;
+
+        public QueryStringSelector(IHttpContextAccessor contextAccessor)
+        {
+            _contextAccessor = contextAccessor;
+        }
+        
+        public string Select()
+        {
+            var val = _contextAccessor.HttpContext.Request.Query["selector"];
+            return val;
+        }
+    }
+
+    public static class ServiceCollectionExtensions
+    {
+        public static IServiceCollection AddPayExHttpClient(this IServiceCollection services, IConfiguration configuration, string payExClientName)
+        {
+            var payexConfigsection = configuration.GetSection($"PayEx:{payExClientName}");
+            services.Configure<PayExOptions>(payExClientName, payexConfigsection);
+            services.AddHttpClient<PayExHttpClient>(payExClientName);
+            services.AddTransient<PayExClient>();
+            return services;
         }
     }
 }

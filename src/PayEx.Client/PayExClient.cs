@@ -17,16 +17,31 @@ namespace PayEx.Client
 {
     public class PayExClient
     {
+        private readonly IHttpClientFactory _clientFactory;
+        private readonly ISelectClient _clientSelector;
         private const string PspVippsPaymentsBaseUrl = "/psp/vipps/payments/";
         private const string PspCreditCardPaymentsBaseUrl = "/psp/creditcard/payments/";
-        private readonly PayExHttpClient _client;
-        private readonly PayExOptions _options;
+        private readonly ILogPayExHttpResponse _logger;
+        private IOptionsSnapshot<PayExOptions> _optionFetcher;
 
-        public PayExClient(HttpClient client, IOptions<PayExOptions> options, ILogPayExHttpResponse logger = null)
+        public PayExClient(IHttpClientFactory clientFactory, IOptionsSnapshot<PayExOptions> options, ISelectClient clientSelector, ILogPayExHttpResponse logger = null)
         {
-            logger = logger ?? new NoOpLogger();
-            _client = new PayExHttpClient(client, logger);
-            _options = options.Value;
+            _clientFactory = clientFactory;
+            _clientSelector = clientSelector;
+            _logger = logger ?? new NoOpLogger();
+            var selector = _clientSelector.Select();
+            if (string.IsNullOrEmpty(selector))
+                throw new Exception("No selector given");
+            _optionFetcher = options;
+    
+            
+    
+        }
+
+        private PayExHttpClient CreateInternalClient()
+        {
+            var httpClient = _clientFactory.CreateClient(_clientSelector.Select());
+            return new PayExHttpClient(httpClient, _logger);
         }
 
         /// <summary>
@@ -61,7 +76,7 @@ namespace PayEx.Client
 
             var url = $"{id}?$expand=prices,captures,payeeinfo,urls,transactions,authorizations,reversals,cancellations";
             Func<ProblemsContainer, Exception> onError = m => new CouldNotFindPaymentException(id, m);
-            var res = await _client.HttpGet<PaymentResponseContainer>(url, onError);
+            var res = await CreateInternalClient().HttpGet<PaymentResponseContainer>(url, onError);
             return res;
         }
         
@@ -74,7 +89,7 @@ namespace PayEx.Client
         {
             var url = $"{id}?$expand=prices,captures,payeeinfo,urls,transactions,authorizations,reversals,cancellations";
             Func<ProblemsContainer, Exception> onError = m => new CouldNotFindTransactionException(id, m);
-            var res = await _client.HttpGet<AllTransactionResponseContainer>(url, onError);
+            var res = await CreateInternalClient().HttpGet<AllTransactionResponseContainer>(url, onError);
             return res.Transactions.TransactionList;
         }
 
@@ -101,7 +116,7 @@ namespace PayEx.Client
 
             Func<ProblemsContainer, Exception> onError = m => new CouldNotAuthorizePaymentException(id, m);
             var payload = new VippsAuthorizationRequestContainer(vippsAuthorization);
-            var res = await _client.HttpPost<VippsAuthorizationRequestContainer, AuthorizationResponseContainer>(url, onError, payload);
+            var res = await CreateInternalClient().HttpPost<VippsAuthorizationRequestContainer, AuthorizationResponseContainer>(url, onError, payload);
             return res;
         }
 
@@ -126,7 +141,7 @@ namespace PayEx.Client
             var url = httpOperation.Href;
             Func<ProblemsContainer, Exception> onError = m => new CouldNotPostTransactionException(id, m);
             var payload = new TransactionRequestContainer(transaction);
-            var res = await _client.HttpPost<TransactionRequestContainer, CaptureTransactionResponseContainer>(url, onError, payload);
+            var res = await CreateInternalClient().HttpPost<TransactionRequestContainer, CaptureTransactionResponseContainer>(url, onError, payload);
             return res.Capture.Transaction;
         }
 
@@ -151,7 +166,7 @@ namespace PayEx.Client
             var url = httpOperation.Href;
             Func<ProblemsContainer, Exception> onError = m => new CouldNotPostTransactionException(id, m);
             var payload = new TransactionRequestContainer(transaction);
-            var res = await _client.HttpPost<TransactionRequestContainer, ReversalTransactionResponseContainer>(url, onError, payload);
+            var res = await CreateInternalClient().HttpPost<TransactionRequestContainer, ReversalTransactionResponseContainer>(url, onError, payload);
             return res.Reversal.Transaction;
         }
 
@@ -176,7 +191,7 @@ namespace PayEx.Client
             var url = httpOperation.Href;
             Func<ProblemsContainer, Exception> onError = m => new CouldNotPostTransactionException(id, m);
             var payload = new TransactionRequestContainer(transaction);
-            var res = await _client.HttpPost<TransactionRequestContainer, CancellationTransactionResponseContainer>(url, onError, payload);
+            var res = await CreateInternalClient().HttpPost<TransactionRequestContainer, CancellationTransactionResponseContainer>(url, onError, payload);
             return res.Cancellation.Transaction;
         }
 
@@ -201,25 +216,46 @@ namespace PayEx.Client
             var url = httpOperation.Href;
             Func<ProblemsContainer, Exception> onError = m => new CouldNotPostTransactionException(id, m);
             var payload = new PaymentAbortRequestContainer();
-            var res = await _client.HttpPatch<PaymentAbortRequestContainer, PaymentResponseContainer>(url, onError, payload);
+            var res = await CreateInternalClient().HttpPatch<PaymentAbortRequestContainer, PaymentResponseContainer>(url, onError, payload);
             return res;
         }
 
         public Task<string> GetRaw(string id)
         {
             var url = $"{id}?$expand=prices,captures,payeeinfo,urls,transactions,authorizations,reversals,cancellations";
-            return _client.GetRaw(url);
+            return CreateInternalClient().GetRaw(url);
         }
 
         private async Task<PaymentResponseContainer> CreatePayment(string baseUrl, PaymentRequest payment)
         {
-            payment.SetRequiredMerchantInfo(_options);
+            payment.SetRequiredMerchantInfo(Options());
 
             var payload = new PaymentRequestContainer(payment);
             Func<ProblemsContainer, Exception> onError = m => new CouldNotPlacePaymentException(payment, m);
             var url = $"{baseUrl}?$expand=prices,captures,payeeinfo,urls,transactions,authorizations,reversals,cancellations";
-            var res = await _client.HttpPost<PaymentRequestContainer, PaymentResponseContainer>(url, onError, payload);
+            var res = await CreateInternalClient().HttpPost<PaymentRequestContainer, PaymentResponseContainer>(url, onError, payload);
             return res;
         }
+
+        private PayExOptions Options()
+        {
+            var selector = _clientSelector.Select();
+            var payExOptions = _optionFetcher.Get(selector);
+            
+            if(payExOptions == null)
+                throw new Exception($"Unknown selection {selector}");
+
+            if (payExOptions.IsEmpty())
+            {
+                throw new Exception($"Unknown selection {selector}");
+            }
+
+            return payExOptions;
+        }
+    }
+
+    public interface ISelectClient
+    {
+        string Select();
     }
 }

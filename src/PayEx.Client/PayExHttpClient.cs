@@ -11,7 +11,7 @@ using PayEx.Client.Models.Vipps;
 
 namespace PayEx.Client
 {
-    internal class PayExHttpClient
+    public class PayExHttpClient
     {
         private readonly HttpClient _client;
         private readonly ILogPayExHttpResponse _logger;

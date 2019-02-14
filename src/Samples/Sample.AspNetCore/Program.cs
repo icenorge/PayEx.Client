@@ -12,6 +12,7 @@ namespace Sample.AspNetCore
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseUrls("http://localhost:2299")
                 .UseStartup<Startup>()
                 .Build();
     }
