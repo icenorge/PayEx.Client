@@ -31,7 +31,7 @@ namespace PayEx.Client
             _logger = logger ?? new NoOpLogger();
             var selector = _clientSelector.Select();
             if (string.IsNullOrEmpty(selector))
-                throw new Exception("No selector given");
+                throw new Exception("No clientname given. Check ISelectClient and/or any configuration.");
             _optionFetcher = options;
         }
 
