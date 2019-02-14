@@ -35,32 +35,4 @@ namespace Sample.AspNetCore
             app.UseMvc();
         }
     }
-
-        public class QueryStringSelector : ISelectClient
-    {
-        private readonly IHttpContextAccessor _contextAccessor;
-
-        public QueryStringSelector(IHttpContextAccessor contextAccessor)
-        {
-            _contextAccessor = contextAccessor;
-        }
-        
-        public string Select()
-        {
-            var val = _contextAccessor.HttpContext.Request.Query["selector"];
-            return val;
-        }
-    }
-
-    public static class ServiceCollectionExtensions
-    {
-        public static IServiceCollection AddPayExHttpClient(this IServiceCollection services, IConfiguration configuration, string payExClientName)
-        {
-            var payexConfigsection = configuration.GetSection($"PayEx:{payExClientName}");
-            services.Configure<PayExOptions>(payExClientName, payexConfigsection);
-            services.AddHttpClient<PayExHttpClient>(payExClientName);
-            services.AddTransient<PayExClient>();
-            return services;
-        }
-    }
 }

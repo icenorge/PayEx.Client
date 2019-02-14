@@ -22,7 +22,7 @@ namespace PayEx.Client
         private const string PspVippsPaymentsBaseUrl = "/psp/vipps/payments/";
         private const string PspCreditCardPaymentsBaseUrl = "/psp/creditcard/payments/";
         private readonly ILogPayExHttpResponse _logger;
-        private IOptionsSnapshot<PayExOptions> _optionFetcher;
+        private readonly IOptionsSnapshot<PayExOptions> _optionFetcher;
 
         public PayExClient(IHttpClientFactory clientFactory, IOptionsSnapshot<PayExOptions> options, ISelectClient clientSelector, ILogPayExHttpResponse logger = null)
         {
@@ -33,15 +33,6 @@ namespace PayEx.Client
             if (string.IsNullOrEmpty(selector))
                 throw new Exception("No selector given");
             _optionFetcher = options;
-    
-            
-    
-        }
-
-        private PayExHttpClient CreateInternalClient()
-        {
-            var httpClient = _clientFactory.CreateClient(_clientSelector.Select());
-            return new PayExHttpClient(httpClient, _logger);
         }
 
         /// <summary>
@@ -79,7 +70,7 @@ namespace PayEx.Client
             var res = await CreateInternalClient().HttpGet<PaymentResponseContainer>(url, onError);
             return res;
         }
-        
+
         /// <summary>
         /// Gets all transactions for a payment.
         /// </summary>
@@ -237,25 +228,26 @@ namespace PayEx.Client
             return res;
         }
 
+        private PayExHttpClient CreateInternalClient()
+        {
+            var httpClient = _clientFactory.CreateClient(_clientSelector.Select());
+            return new PayExHttpClient(httpClient, _logger);
+        }
+
         private PayExOptions Options()
         {
             var selector = _clientSelector.Select();
             var payExOptions = _optionFetcher.Get(selector);
             
             if(payExOptions == null)
-                throw new Exception($"Unknown selection {selector}");
+                throw new Exception($"Unknown payex account {selector}. Check config.");
 
             if (payExOptions.IsEmpty())
             {
-                throw new Exception($"Unknown selection {selector}");
+                throw new Exception($"Unknown payex account {selector}. Check config.");
             }
 
             return payExOptions;
         }
-    }
-
-    public interface ISelectClient
-    {
-        string Select();
     }
 }

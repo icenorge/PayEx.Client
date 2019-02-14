@@ -1,9 +1,7 @@
-﻿using System;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
-using PayEx.Client;
 
-namespace Sample.AspNetCore
+namespace PayEx.Client
 {
     public class PayExClientConfigurator : IConfigureNamedOptions<HttpClientFactoryOptions>
     {
@@ -26,7 +24,7 @@ namespace Sample.AspNetCore
             {
                 client.BaseAddress = payexoptions.ApiBaseUrl;
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {payexoptions.Token}");
-                
+                client.DefaultRequestHeaders.Add("X-Payex-ClientName", $"{name}");
             }); 
         }
     }

@@ -14,10 +14,9 @@ namespace Sample.AspNetCore.Controllers
     {
         private readonly PayExClient _client;
 
-        public DefaultController(IHttpClientFactory factory, IServiceProvider serviceProvider)
+        public DefaultController(PayExClient client)
         {
-            var httpClient = factory.CreateClient(Constants.Someaccount);
-            _client = serviceProvider.GetService<PayExClient>();
+            _client = client;
         }
 
         [Route("/")]
