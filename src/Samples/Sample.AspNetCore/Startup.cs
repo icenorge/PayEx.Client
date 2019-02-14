@@ -21,9 +21,11 @@ namespace Sample.AspNetCore
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<PayExOptions>(Configuration.GetSection("PayEx"));
             services.AddTransient<IConfigureOptions<HttpClientFactoryOptions>, PayExClientConfigurator>();
-            services.AddHttpClient<PayExClient>("PayExClient");
+            services.AddScoped<ISelectClient, QueryStringSelector>();
+            services.AddTransient<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddPayExHttpClient(Configuration, Constants.Someaccount);
+            services.AddPayExHttpClient(Configuration, Constants.OtherAccount);
             services.AddMvc();
         }
         

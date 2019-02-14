@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -11,7 +13,7 @@ using PayEx.Client.Models.Vipps;
 
 namespace PayEx.Client
 {
-    internal class PayExHttpClient
+    public class PayExHttpClient
     {
         private readonly HttpClient _client;
         private readonly ILogPayExHttpResponse _logger;
@@ -86,7 +88,10 @@ namespace PayEx.Client
             }
             else
             {
-                problems = new ProblemsContainer("Other", $"Response when calling PayEx was: '{response.StatusCode}'");
+                IEnumerable<string> customHeader = null;
+                _client.DefaultRequestHeaders.TryGetValues("X-Payex-ClientName", out customHeader);
+                var aggr = customHeader != null? customHeader.Aggregate((x, y) => x + "," + y) : "no-name";
+                problems = new ProblemsContainer("Other", $"Response when calling PayEx `{aggr}` was: '{response.StatusCode}'");
             }
 
             var ex = onError(problems);

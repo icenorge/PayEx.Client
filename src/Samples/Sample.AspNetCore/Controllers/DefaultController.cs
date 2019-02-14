@@ -1,5 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.ComponentModel.Design;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using PayEx.Client;
 using PayEx.Client.Models.Vipps.PaymentAPI.Common;
 using PayEx.Client.Models.Vipps.PaymentAPI.Request;
