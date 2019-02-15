@@ -240,14 +240,22 @@ namespace PayEx.Client
             var payExOptions = _optionFetcher.Get(selector);
             
             if(payExOptions == null)
-                throw new Exception($"Unknown payex account {selector}. Check config.");
+                throw new UnknownAccountException($"Unknown payex account {selector}. Check config.");
 
             if (payExOptions.IsEmpty())
             {
-                throw new Exception($"Unknown payex account {selector}. Check config.");
+                throw new UnknownAccountException($"Unknown payex account {selector}. Check config.");
             }
 
             return payExOptions;
+        }
+    }
+
+    public class UnknownAccountException : Exception
+    {
+        public UnknownAccountException(string message) : base(message)
+        {
+            
         }
     }
 }
