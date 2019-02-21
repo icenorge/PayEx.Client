@@ -40,5 +40,7 @@ namespace PayEx.Client.Models.Vipps.PaymentAPI.Response
         public ReversalsListContainer Reversals { get; set; }
 
         public CancellationsListContainer Cancellations { get; set; }
+        
+        public string PaymentToken { get; set; }
     }
 }

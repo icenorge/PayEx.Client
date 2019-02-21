@@ -9,7 +9,8 @@ namespace PayEx.Client.Models.Vipps.PaymentAPI.Request
         {
             UserAgent = useragent;
             Description = description;
-            Prices.AddRange(prices);
+            if(prices != null)
+                Prices.AddRange(prices);
             
             PayerReference = payerReference;
             PayeeInfo.PayeeReference = payeeReference;
@@ -36,5 +37,12 @@ namespace PayEx.Client.Models.Vipps.PaymentAPI.Request
 
         public PrefillInfo PrefillInfo { get; } = new PrefillInfo();
 
+        public bool GeneratePaymentToken { get; set; } = false;
+        
+        public string PaymentToken { get; set; }
+        
+        public long Amount { get; set; }
+        
+        public long VatAmount { get; set; }
     }
 }

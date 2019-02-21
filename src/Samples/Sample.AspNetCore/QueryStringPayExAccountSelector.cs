@@ -14,7 +14,7 @@ namespace Sample.AspNetCore
         
         public string Select()
         {
-            var val = _contextAccessor.HttpContext.Request.Query["selector"];
+            var val = "someAccount"; //_contextAccessor.HttpContext.Request.Query["selector"];
             return val;
         }
     }

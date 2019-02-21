@@ -29,6 +29,21 @@ namespace PayEx.Client.Models.Vipps.PaymentAPI.Response
             }
             return httpOperation.Href;
         }
+        
+        public string GetRedirectVerificationUrl()
+        {
+            var httpOperation = Operations.FirstOrDefault(o => o.Rel == "redirect-verification");
+            if (httpOperation == null)
+            {
+                if (Operations.Any())
+                {
+                    var availableOps = Operations.Select(o => o.Rel).Aggregate((x, y) => x + "," + y);
+                    throw new BadRequestException($"Cannot get RedirectVerificationUrl from this payment. Available operations: {availableOps}");
+                }
+                throw new NoOperationsLeftException();
+            }
+            return httpOperation.Href;
+        }
 
         public string TryGetPaymentUrl()
         {
