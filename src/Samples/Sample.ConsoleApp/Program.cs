@@ -13,14 +13,14 @@ namespace Sample.ConsoleApp
         {
             var payExOptions = new PayExOptions
             {
-                
                 ApiBaseUrl = new Uri("https://api.externalintegration.payex.com/"),
                 Token = "my-token",
                 MerchantId = "my-merchantId",
                 MerchantName = "YOUR-MERCHANT-NAME",
                 CallBackUrl = new Uri("https://yourdomain.com/callbacks"),
                 CancelPageUrl = new Uri("https://yourdomain.com/cancel"),
-                CompletePageUrl = new Uri("https://yourdomain.com/complete")
+                CompletePageUrl = new Uri("https://yourdomain.com/complete"),
+                AppendStatus = true
             };
 
             IOptions<PayExOptions> options = new OptionsWrapper<PayExOptions>(payExOptions);
@@ -31,11 +31,11 @@ namespace Sample.ConsoleApp
 
 
             IConfigureOptions<PayExOptions> optionsConfigurator = new ConfigureOptions<PayExOptions>(Conf(payExOptions));
-            var configureOptionses = new []{ optionsConfigurator };
-            IPostConfigureOptions<PayExOptions> postoptionsConfigurator = new PostConfigureOptions<PayExOptions>(Constants.THECLIENTNAME,Conf(payExOptions));
-            var postConfigureOptionses = new []{ postoptionsConfigurator};
-            
-            IOptionsSnapshot<PayExOptions> optionsSnap = new OptionsManager<PayExOptions>(new OptionsFactory<PayExOptions>(configureOptionses,postConfigureOptionses));
+            var configureOptionses = new[] { optionsConfigurator };
+            IPostConfigureOptions<PayExOptions> postoptionsConfigurator = new PostConfigureOptions<PayExOptions>(Constants.THECLIENTNAME, Conf(payExOptions));
+            var postConfigureOptionses = new[] { postoptionsConfigurator };
+
+            IOptionsSnapshot<PayExOptions> optionsSnap = new OptionsManager<PayExOptions>(new OptionsFactory<PayExOptions>(configureOptionses, postConfigureOptionses));
             var payExClient = new PayExClient(httpClientFactory, optionsSnap, clientSelector);
             var prices = new Price
             {
@@ -59,6 +59,7 @@ namespace Sample.ConsoleApp
                 o.CallBackUrl = payExOptions.CallBackUrl;
                 o.CancelPageUrl = payExOptions.CancelPageUrl;
                 o.CompletePageUrl = payExOptions.CompletePageUrl;
+                o.ApiBaseUrl = payExOptions.ApiBaseUrl;
             };
         }
     }

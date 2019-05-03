@@ -18,7 +18,7 @@ namespace PayEx.Client
         private readonly HttpClient _client;
         private readonly ILogPayExHttpResponse _logger;
 
-        private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+        private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver(), NullValueHandling = NullValueHandling.Ignore };
 
         public PayExHttpClient(HttpClient client, ILogPayExHttpResponse logger)
         {
@@ -45,7 +45,7 @@ namespace PayEx.Client
         private async Task<T> HttpRequest<T>(string httpMethod, string url, Func<ProblemsContainer, Exception> onError, object payload = null)
         {
             var msg = new HttpRequestMessage(new HttpMethod(httpMethod), url);
-            
+
             if (payload != null)
             {
                 var content = JsonConvert.SerializeObject(payload, Settings);
@@ -90,7 +90,7 @@ namespace PayEx.Client
             {
                 IEnumerable<string> customHeader = null;
                 _client.DefaultRequestHeaders.TryGetValues("X-Payex-ClientName", out customHeader);
-                var aggr = customHeader != null? customHeader.Aggregate((x, y) => x + "," + y) : "no-name";
+                var aggr = customHeader != null ? customHeader.Aggregate((x, y) => x + "," + y) : "no-name";
                 problems = new ProblemsContainer("Other", $"Response when calling PayEx `{aggr}` was: '{response.StatusCode}'");
             }
 
