@@ -11,6 +11,7 @@ namespace PayEx.Client
         public Uri CallBackUrl { get; set; }
         public Uri CancelPageUrl { get; set; }
         public Uri CompletePageUrl { get; set; }
+        public bool AppendStatus { get; set; }
 
         public bool IsEmpty()
         {
