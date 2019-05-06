@@ -18,7 +18,11 @@ namespace PayEx.Client
         private readonly HttpClient _client;
         private readonly ILogPayExHttpResponse _logger;
 
-        private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+        private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore
+        };
 
         public PayExHttpClient(HttpClient client, ILogPayExHttpResponse logger)
         {
