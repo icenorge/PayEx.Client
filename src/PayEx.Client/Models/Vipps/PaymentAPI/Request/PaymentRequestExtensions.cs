@@ -9,8 +9,8 @@ namespace PayEx.Client.Models.Vipps.PaymentAPI.Request
             payment.PayeeInfo.PayeeId = options.MerchantId;
             payment.PayeeInfo.PayeeName = options.MerchantName;
             payment.Urls.CallbackUrl = options.CallBackUrl?.ToString();
-            payment.Urls.CancelUrl = CallbackUrl(options.CancelPageUrl, "?status=cancel");
-            payment.Urls.CompleteUrl = CallbackUrl(options.CompletePageUrl, "?status=complete");
+            payment.Urls.CancelUrl = options.StatusInUrl ? CallbackUrl(options.CancelPageUrl, "?status=cancel") : options.CancelPageUrl.ToString();
+            payment.Urls.CompleteUrl = options.StatusInUrl ? CallbackUrl(options.CompletePageUrl, "?status=complete") : options.CompletePageUrl.ToString();
         }
 
         private static string CallbackUrl(Uri callbackBaseUrl, string relativePath)
