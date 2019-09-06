@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using PayEx.Client.Exceptions;
 using PayEx.Client.Models.Vipps;
-using PayEx.Client.Models.Vipps.AuthorizationAPI.Request;
-using PayEx.Client.Models.Vipps.AuthorizationAPI.Response;
 using PayEx.Client.Models.Vipps.PaymentAPI.Request;
 using PayEx.Client.Models.Vipps.PaymentAPI.Response;
 using PayEx.Client.Models.Vipps.TransactionAPI.Request;
@@ -82,33 +80,6 @@ namespace PayEx.Client
             Func<ProblemsContainer, Exception> onError = m => new CouldNotFindTransactionException(id, m);
             var res = await CreateInternalClient().HttpGet<AllTransactionResponseContainer>(url, onError);
             return res.Transactions.TransactionList;
-        }
-
-        /// <summary>
-        /// Triggers an authorization from the customer in the Vipps app, a.k.a POSTing an `authorization`.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="vippsAuthorization"></param>
-        /// <returns></returns>
-        public async Task<AuthorizationResponseContainer> PostVippsAuthorization(string id, VippsAuthorizationRequest vippsAuthorization)
-        {
-            var payment = await GetPayment(id);
-            var httpOperation = payment.Operations.FirstOrDefault(o => o.Rel == "create-authorization");
-            if (httpOperation == null)
-            {
-                if (payment.Operations.Any())
-                {
-                    var availableOps = payment.Operations.Select(o => o.Rel).Aggregate((x, y) => x + "," + y);
-                    throw new CouldNotAuthorizePaymentException(id, "state", $"This payment cannot be authorized. Available operations: {availableOps}");
-                }
-                throw new NoOperationsLeftException();
-            }
-            var url = httpOperation.Href;
-
-            Func<ProblemsContainer, Exception> onError = m => new CouldNotAuthorizePaymentException(id, m);
-            var payload = new VippsAuthorizationRequestContainer(vippsAuthorization);
-            var res = await CreateInternalClient().HttpPost<VippsAuthorizationRequestContainer, AuthorizationResponseContainer>(url, onError, payload);
-            return res;
         }
 
         /// <summary>
