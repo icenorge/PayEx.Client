@@ -11,6 +11,7 @@ namespace PayEx.Client
             services.Configure<PayExOptions>(clientName, payexConfigsection);
             services.AddHttpClient<PayExHttpClient>(clientName);
             services.AddTransient<PayExClient>();
+            services.AddTransient<PayExClientDynamic>();
             return services;
         }
     }
