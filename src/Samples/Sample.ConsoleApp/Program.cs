@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using PayEx.Client;
 using PayEx.Client.Models.Vipps.PaymentAPI.Common;
@@ -11,17 +12,12 @@ namespace Sample.ConsoleApp
     {
         static void Main(string[] args)
         {
-            var payExOptions = new PayExOptions
-            {
-                
-                ApiBaseUrl = new Uri("https://api.externalintegration.payex.com/"),
-                Token = "my-token",
-                MerchantId = "my-merchantId",
-                MerchantName = "YOUR-MERCHANT-NAME",
-                CallBackUrl = new Uri("https://yourdomain.com/callbacks"),
-                CancelPageUrl = new Uri("https://yourdomain.com/cancel"),
-                CompletePageUrl = new Uri("https://yourdomain.com/complete")
-            };
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            var payExOptions = new PayExOptions();
+            config.GetSection("payex:someAccount").Bind(payExOptions);
 
             IOptions<PayExOptions> options = new OptionsWrapper<PayExOptions>(payExOptions);
 
@@ -36,7 +32,8 @@ namespace Sample.ConsoleApp
             var postConfigureOptionses = new []{ postoptionsConfigurator};
             
             IOptionsSnapshot<PayExOptions> optionsSnap = new OptionsManager<PayExOptions>(new OptionsFactory<PayExOptions>(configureOptionses,postConfigureOptionses));
-            var payExClient = new PayExClient(httpClientFactory, optionsSnap, clientSelector);
+            var dynamic = new PayExClientDynamic(httpClientFactory, optionsSnap);
+            var payExClient = new PayExClient(dynamic, clientSelector);
             var prices = new Price
             {
                 Amount = 10000,
@@ -46,6 +43,10 @@ namespace Sample.ConsoleApp
             var paymentRequest = new PaymentRequest("Console.Sample/1.0.0", "Some productname", "order123", "123456", prices);
             var res = payExClient.PostVippsPayment(paymentRequest).GetAwaiter().GetResult();
             Console.WriteLine($"Payment created with id : {res.Payment.Id}");
+
+            var dynamicallyCreated = dynamic.PostVippsPayment(clientSelector.Select(), paymentRequest).GetAwaiter().GetResult();
+            Console.WriteLine($"Payment created with dynamic client. id : {dynamicallyCreated.Payment.Id}");
+
         }
 
         private static Action<PayExOptions> Conf(PayExOptions payExOptions)
@@ -90,6 +91,6 @@ namespace Sample.ConsoleApp
 
     public static class Constants
     {
-        public const string THECLIENTNAME = "something";
+        public const string THECLIENTNAME = "someAccount";
     }
 }

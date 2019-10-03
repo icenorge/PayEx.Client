@@ -1,13 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using PayEx.Client.Exceptions;
-using PayEx.Client.Models.Vipps;
-using PayEx.Client.Models.Vipps.AuthorizationAPI.Request;
-using PayEx.Client.Models.Vipps.AuthorizationAPI.Response;
 using PayEx.Client.Models.Vipps.PaymentAPI.Request;
 using PayEx.Client.Models.Vipps.PaymentAPI.Response;
 using PayEx.Client.Models.Vipps.TransactionAPI.Request;
@@ -17,32 +10,36 @@ namespace PayEx.Client
 {
     public class PayExClient
     {
-        private readonly IHttpClientFactory _clientFactory;
+        private readonly PayExClientDynamic _dynamic;
         private readonly ISelectClient _clientSelector;
-        private const string PspVippsPaymentsBaseUrl = "/psp/vipps/payments/";
-        private const string PspCreditCardPaymentsBaseUrl = "/psp/creditcard/payments/";
-        private readonly ILogPayExHttpResponse _logger;
-        private readonly IOptionsSnapshot<PayExOptions> _optionFetcher;
 
-        public PayExClient(IHttpClientFactory clientFactory, IOptionsSnapshot<PayExOptions> options, ISelectClient clientSelector, ILogPayExHttpResponse logger = null)
+        public PayExClient(PayExClientDynamic dynamic, ISelectClient clientSelector)
         {
-            _clientFactory = clientFactory;
+            _dynamic = dynamic;
             _clientSelector = clientSelector;
-            _logger = logger ?? new NoOpLogger();
-            var selector = _clientSelector.Select();
+            var selector = clientSelector.Select();
             if (string.IsNullOrEmpty(selector))
                 throw new Exception("No clientname given. Check ISelectClient and/or any configuration.");
-            _optionFetcher = options;
         }
-
+        
+        /// <summary>
+        /// Gets an existing payment.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public Task<PaymentResponseContainer> GetPayment(string id)
+        {
+            return _dynamic.GetPayment(_clientSelector.Select(), id);
+        }
+        
         /// <summary>
         /// Creates a new Vipps payment
         /// </summary>
         /// <param name="payment"></param>
         /// <returns></returns>
-        public async Task<PaymentResponseContainer> PostVippsPayment(PaymentRequest payment)
+        public Task<PaymentResponseContainer> PostVippsPayment(PaymentRequest payment)
         {
-            return await CreatePayment(PspVippsPaymentsBaseUrl, payment);
+            return _dynamic.PostVippsPayment(_clientSelector.Select(), payment);
         }
 
         /// <summary>
@@ -50,25 +47,9 @@ namespace PayEx.Client
         /// </summary>
         /// <param name="payment"></param>
         /// <returns></returns>
-        public async Task<PaymentResponseContainer> PostCreditCardPayment(PaymentRequest payment)
+        public Task<PaymentResponseContainer> PostCreditCardPayment(PaymentRequest payment)
         {
-            return await CreatePayment(PspCreditCardPaymentsBaseUrl, payment);
-        }
-
-        /// <summary>
-        /// Gets an existing payment.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<PaymentResponseContainer> GetPayment(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-                throw new CouldNotFindPaymentException(id);
-
-            var url = $"{id}?$expand=prices,captures,payeeinfo,urls,transactions,authorizations,reversals,cancellations";
-            Func<ProblemsContainer, Exception> onError = m => new CouldNotFindPaymentException(id, m);
-            var res = await CreateInternalClient().HttpGet<PaymentResponseContainer>(url, onError);
-            return res;
+            return _dynamic.PostCreditCardPayment(_clientSelector.Select(), payment);
         }
 
         /// <summary>
@@ -76,178 +57,46 @@ namespace PayEx.Client
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<TransactionResponse>> GetTransactions(string id)
+        public Task<IEnumerable<TransactionResponse>> GetTransactions(string id)
         {
-            var url = $"{id}?$expand=prices,captures,payeeinfo,urls,transactions,authorizations,reversals,cancellations";
-            Func<ProblemsContainer, Exception> onError = m => new CouldNotFindTransactionException(id, m);
-            var res = await CreateInternalClient().HttpGet<AllTransactionResponseContainer>(url, onError);
-            return res.Transactions.TransactionList;
-        }
-
-        /// <summary>
-        /// Triggers an authorization from the customer in the Vipps app, a.k.a POSTing an `authorization`.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="vippsAuthorization"></param>
-        /// <returns></returns>
-        public async Task<AuthorizationResponseContainer> PostVippsAuthorization(string id, VippsAuthorizationRequest vippsAuthorization)
-        {
-            var payment = await GetPayment(id);
-            var httpOperation = payment.Operations.FirstOrDefault(o => o.Rel == "create-authorization");
-            if (httpOperation == null)
-            {
-                if (payment.Operations.Any())
-                {
-                    var availableOps = payment.Operations.Select(o => o.Rel).Aggregate((x, y) => x + "," + y);
-                    throw new CouldNotAuthorizePaymentException(id, "state", $"This payment cannot be authorized. Available operations: {availableOps}");
-                }
-                throw new NoOperationsLeftException();
-            }
-            var url = httpOperation.Href;
-
-            Func<ProblemsContainer, Exception> onError = m => new CouldNotAuthorizePaymentException(id, m);
-            var payload = new VippsAuthorizationRequestContainer(vippsAuthorization);
-            var res = await CreateInternalClient().HttpPost<VippsAuthorizationRequestContainer, AuthorizationResponseContainer>(url, onError, payload);
-            return res;
+            return _dynamic.GetTransactions(_clientSelector.Select(), id);
         }
 
         /// <summary>
         /// Captures a payment a.k.a POSTs a transaction.
         /// </summary>
-        public async Task<TransactionResponse> PostCapture(string id, TransactionRequest transaction)
+        public Task<TransactionResponse> PostCapture(string id, TransactionRequest transaction)
         {
-            var payment = await GetPayment(id);
-
-            var httpOperation = payment.Operations.FirstOrDefault(o => o.Rel == "create-capture");
-            if (httpOperation == null)
-            {
-                if (payment.Operations.Any())
-                {
-                    var availableOps = payment.Operations.Select(o => o.Rel).Aggregate((x, y) => x + "," + y);
-                    throw new PaymentNotYetAuthorizedException(id, $"This payment cannot be captured. Available operations: {availableOps}");
-                }
-                throw new NoOperationsLeftException();
-            }
-
-            var url = httpOperation.Href;
-            Func<ProblemsContainer, Exception> onError = m => new CouldNotPostTransactionException(id, m);
-            var payload = new TransactionRequestContainer(transaction);
-            var res = await CreateInternalClient().HttpPost<TransactionRequestContainer, CaptureTransactionResponseContainer>(url, onError, payload);
-            return res.Capture.Transaction;
+            return _dynamic.PostCapture(_clientSelector.Select(), id, transaction);
         }
 
         /// <summary>
         /// Reverses a payment a.k.a POSTs a transaction.
         /// </summary>
-        public async Task<TransactionResponse> PostReversal(string id, TransactionRequest transaction)
+        public Task<TransactionResponse> PostReversal(string id, TransactionRequest transaction)
         {
-            var payment = await GetPayment(id);
-
-            var httpOperation = payment.Operations.FirstOrDefault(o => o.Rel == "create-reversal");
-            if (httpOperation == null)
-            {
-                if (payment.Operations.Any())
-                {
-                    var availableOps = payment.Operations.Select(o => o.Rel).Aggregate((x, y) => x + "," + y);
-                    throw new CouldNotReversePaymentException(id, $"This payment cannot be reversed. Available operations: {availableOps}");
-                }
-                throw new NoOperationsLeftException();
-            }
-
-            var url = httpOperation.Href;
-            Func<ProblemsContainer, Exception> onError = m => new CouldNotPostTransactionException(id, m);
-            var payload = new TransactionRequestContainer(transaction);
-            var res = await CreateInternalClient().HttpPost<TransactionRequestContainer, ReversalTransactionResponseContainer>(url, onError, payload);
-            return res.Reversal.Transaction;
+            return _dynamic.PostReversal(_clientSelector.Select(), id, transaction);
         }
 
         /// <summary>
         /// Cancels a payment a.k.a POSTs a transaction.
         /// </summary>
-        public async Task<TransactionResponse> PostCancellation(string id, TransactionRequest transaction)
+        public Task<TransactionResponse> PostCancellation(string id, TransactionRequest transaction)
         {
-            var payment = await GetPayment(id);
-
-            var httpOperation = payment.Operations.FirstOrDefault(o => o.Rel == "create-cancellation");
-            if (httpOperation == null)
-            {
-                if (payment.Operations.Any())
-                {
-                    var availableOps = payment.Operations.Select(o => o.Rel).Aggregate((x, y) => x + "," + y);
-                    throw new CouldNotCancelPaymentException(id, $"This payment cannot be cancelled. Available operations: {availableOps}");
-                }
-                throw new NoOperationsLeftException();
-            }
-
-            var url = httpOperation.Href;
-            Func<ProblemsContainer, Exception> onError = m => new CouldNotPostTransactionException(id, m);
-            var payload = new TransactionRequestContainer(transaction);
-            var res = await CreateInternalClient().HttpPost<TransactionRequestContainer, CancellationTransactionResponseContainer>(url, onError, payload);
-            return res.Cancellation.Transaction;
+            return _dynamic.PostCancellation(_clientSelector.Select(), id, transaction);
         }
 
         /// <summary>
         /// Cancels an unauthorized creditcard payment a.k.a PATCH with a static abort object.
         /// </summary>
-        public async Task<PaymentResponseContainer> PatchAbortPayment(string id)
+        public Task<PaymentResponseContainer> PatchAbortPayment(string id)
         {
-            var payment = await GetPayment(id);
-
-            var httpOperation = payment.Operations.FirstOrDefault(o => o.Rel == "update-payment-abort");
-            if (httpOperation == null)
-            {
-                if (payment.Operations.Any())
-                {
-                    var availableOps = payment.Operations.Select(o => o.Rel).Aggregate((x, y) => x + "," + y);
-                    throw new CouldNotCancelPaymentException(id, $"This payment cannot be aborted. Available operations: {availableOps}");
-                }
-                throw new NoOperationsLeftException();
-            }
-
-            var url = httpOperation.Href;
-            Func<ProblemsContainer, Exception> onError = m => new CouldNotPostTransactionException(id, m);
-            var payload = new PaymentAbortRequestContainer();
-            var res = await CreateInternalClient().HttpPatch<PaymentAbortRequestContainer, PaymentResponseContainer>(url, onError, payload);
-            return res;
+            return _dynamic.PatchAbortPayment(_clientSelector.Select(), id);
         }
 
         public Task<string> GetRaw(string id)
         {
-            var url = $"{id}?$expand=prices,captures,payeeinfo,urls,transactions,authorizations,reversals,cancellations";
-            return CreateInternalClient().GetRaw(url);
-        }
-
-        private async Task<PaymentResponseContainer> CreatePayment(string baseUrl, PaymentRequest payment)
-        {
-            payment.SetRequiredMerchantInfo(Options());
-
-            var payload = new PaymentRequestContainer(payment);
-            Func<ProblemsContainer, Exception> onError = m => new CouldNotPlacePaymentException(payment, m);
-            var url = $"{baseUrl}?$expand=prices,captures,payeeinfo,urls,transactions,authorizations,reversals,cancellations";
-            var res = await CreateInternalClient().HttpPost<PaymentRequestContainer, PaymentResponseContainer>(url, onError, payload);
-            return res;
-        }
-
-        private PayExHttpClient CreateInternalClient()
-        {
-            var httpClient = _clientFactory.CreateClient(_clientSelector.Select());
-            return new PayExHttpClient(httpClient, _logger);
-        }
-
-        private PayExOptions Options()
-        {
-            var selector = _clientSelector.Select();
-            var payExOptions = _optionFetcher.Get(selector);
-            
-            if(payExOptions == null)
-                throw new UnknownAccountException($"Unknown payex account {selector}. Check config.");
-
-            if (payExOptions.IsEmpty())
-            {
-                throw new UnknownAccountException($"Unknown payex account {selector}. Check config.");
-            }
-
-            return payExOptions;
+            return _dynamic.GetRaw(_clientSelector.Select(), id);
         }
     }
 
