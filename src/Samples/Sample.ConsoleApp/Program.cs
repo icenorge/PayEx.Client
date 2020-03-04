@@ -55,11 +55,12 @@ namespace Sample.ConsoleApp
             {
                 o.ApiBaseUrl = payExOptions.ApiBaseUrl;
                 o.Token = payExOptions.Token;
-                o.MerchantId = payExOptions.MerchantId;
-                o.MerchantName = payExOptions.MerchantName;
+                o.PayeeId = payExOptions.PayeeId;
+                o.PayeeName = payExOptions.PayeeName;
                 o.CallBackUrl = payExOptions.CallBackUrl;
                 o.CancelPageUrl = payExOptions.CancelPageUrl;
                 o.CompletePageUrl = payExOptions.CompletePageUrl;
+                o.TermsOfServiceUrl = payExOptions.TermsOfServiceUrl;
             };
         }
     }

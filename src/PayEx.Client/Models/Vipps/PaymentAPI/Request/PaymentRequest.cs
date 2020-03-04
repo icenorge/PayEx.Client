@@ -5,7 +5,11 @@ namespace PayEx.Client.Models.Vipps.PaymentAPI.Request
 {
     public class PaymentRequest
     {
-        public PaymentRequest(string useragent, string description, string payerReference, string payeeReference, params Price[] prices)
+        public PaymentRequest(string useragent, 
+            string description, 
+            string payerReference, 
+            string payeeReference, 
+            params Price[] prices)
         {
             UserAgent = useragent;
             Description = description;
@@ -31,7 +35,7 @@ namespace PayEx.Client.Models.Vipps.PaymentAPI.Request
 
         public string Language { get; set; } = "nb-NO";
 
-        public CallBackUrls Urls { get; } = new CallBackUrls();
+        public Urls Urls { get; } = new Urls();
 
         public PayeeInfo PayeeInfo { get; } = new PayeeInfo();
 
