@@ -185,7 +185,7 @@ namespace PayEx.Client
 
         private async Task<PaymentResponseContainer> CreatePayment(string baseUrl, string clientName, PaymentRequest payment)
         {
-            payment.SetRequiredMerchantInfo(Options(clientName));
+            payment.SetMissingMerchantInformationFromOptions(Options(clientName));
 
             var payload = new PaymentRequestContainer(payment);
             Func<ProblemsContainer, Exception> onError = m => new CouldNotPlacePaymentException(payment, m);
