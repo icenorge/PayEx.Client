@@ -1,1 +1,1 @@
-docker build -f Linux.Dockerfile --build-arg cakeargs="-target=publishtonugetorg -nugetapikey=$NUGET_API_KEY" .
+dotnet cake -target=publishtonugetorg -nugetapikey=$NUGET_API_KEY

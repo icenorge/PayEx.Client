@@ -1,8 +1,0 @@
-sudo: required
-language: generic
-
-services:
-  - docker
-
-script:
-  - docker build -f Linux.Dockerfile .
